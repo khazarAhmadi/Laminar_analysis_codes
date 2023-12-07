@@ -1,6 +1,6 @@
 # Laminar_analysis_codes
-This repository contains several scripts for preprocessing and layerfication of hippocampus from submillimeter fMRI data acquired at 7 Tesla. The scripts call functions from multiple neuroimaging packages including SPM, FSL, ANTS and Hippunfold. 
-It also uses the BM4D filter (1) for denoising of the structural image, based on the work of Lüsebrink et al., (2). Additionally, acompcor (component based noise correction method) is employed to mitigate the noise in the fMRI data (3). Detailed instructons on how to run the preprocessin script can be found in "HowTo-7T_registration_ANTs_V3.docx". To bin the hippocampal subfields across different depths, read "instructions.odt". The codes are still under further development and need to be cleaned up. 
+This repository contains several scripts for preprocessing and layerification of the hippocampus from submillimeter fMRI data acquired at 7 Tesla. The scripts call functions from multiple neuroimaging packages including SPM, FSL, ANTS and Hippunfold. 
+We also use the BM4D filter (1) for denoising of the structural images, based on the work of Lüsebrink et al., (2). Additionally, acompcor (component based noise correction method) is employed to mitigate the noise in the fMRI data (3). Detailed instructions on how to run the preprocessing script can be found in "HowTo-7T_registration_ANTs_V3.docx". To bin the hippocampal subfields across depths, read "instructions.odt". The codes are still under further development and will be cleaned up. 
 
 
 References:
