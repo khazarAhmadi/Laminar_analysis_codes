@@ -46,7 +46,7 @@ Input arguments:
 
     -n: Number of threads (default = '16'. Specify more threads if available.)
 
-    -s: 1 if staged processing (creates Fixed and Mask images)
+    -s: staged processing
 
 --------------------------------------------------------------------------------
 
@@ -520,7 +520,7 @@ if [ -z "$fixed_data_mask" ]; then
         3 \
         $(dirname $func_data_path)/${func_data_name}_fixedMask.nii.gz \
         ME \
-        $(dirname $func_data_path)/${func_data_name}_fixedMask.nii.gz 3
+        $(dirname $func_data_path)/${func_data_name}_fixedMask.nii.gz 2
 
     ## GET THE LARGEST COMPONENT
     $ANTSPATH/ImageMath \
@@ -541,7 +541,7 @@ if [ -z "$fixed_data_mask" ]; then
         3 \
         $(dirname $func_data_path)/${func_data_name}_fixedMask.nii.gz \
         MD \
-        $(dirname $func_data_path)/${func_data_name}_fixedMask.nii.gz 3
+        $(dirname $func_data_path)/${func_data_name}_fixedMask.nii.gz 2
 
     ## MORPHOLOGICAL EROSION
     $ANTSPATH/ImageMath \
@@ -549,26 +549,12 @@ if [ -z "$fixed_data_mask" ]; then
         $(dirname $func_data_path)/${func_data_name}_fixedMask.nii.gz \
         ME \
         $(dirname $func_data_path)/${func_data_name}_fixedMask.nii.gz 1
-        
-    ## FILL HOLES
-    $ANTSPATH/ImageMath \
-        3 \
-        $(dirname $func_data_path)/${func_data_name}_fixedMask.nii.gz \
-        FillHoles \
-        $(dirname $func_data_path)/${func_data_name}_fixedMask.nii.gz
 
     $ANTSPATH/ImageMath \
         3 \
         $(dirname $func_data_path)/${func_data_name}_fixedMask.nii.gz \
         MD \
         $(dirname $func_data_path)/${func_data_name}_fixedMask.nii.gz 2
-
-    $ANTSPATH/ImageMath \
-        3 \
-        $(dirname $func_data_path)/${func_data_name}_fixedMask.nii.gz \
-        MC \
-        $(dirname $func_data_path)/${func_data_name}_fixedMask.nii.gz 4
-    
 
     # Remove unwanted data
     rm $(dirname $func_data_path)/${func_data_name}_fixed_Trunc.nii.gz \
@@ -674,7 +660,8 @@ if [ -z "$staged_proc" ]; then
             degz=$(echo "$radz * (180 / 3.14159)" | sed 's/[eE]+\?/*10^/g' | bc -l)
             # The "%.6f" formatting specifier allows the numeric value to be as wide as it needs to be to accomodate the number
             # Then we mandate (include) a single space as a delimiter between values.
-            echo $(printf "%.6f" $mmx) $(printf "%.6f" $mmy) $(printf "%.6f" $mmz) $(printf "%.6f" $degx) $(printf "%.6f" $degy) $(printf "%.6f" $degz) >>$(dirname $func_data_path)/${func_data_name}_MoCorr.params
+            #echo $(printf "%.6f" $mmx) $(printf "%.6f" $mmy) $(printf "%.6f" $mmz) $(printf "%.6f" $degx) $(printf "%.6f" $degy) $(printf "%.6f" $degz) >>$(dirname $func_data_path)/${func_data_name}_MoCorr.params
+            echo $mmx $mmy $mmz $degx $degy $degz >>$(dirname $func_data_path)/${func_data_name}_MoCorr.params
 
             # Absolute RMS
             if [[ $volume -eq $nthvol ]]; then
@@ -789,7 +776,7 @@ if [ -z "$staged_proc" ]; then
             -s 2x1x0vox \
             -q 50x25x15 \
             -t SyN \
-            -m CC[2] \
+            -m CC \
             -o $OUTPUT \
             ${FUNC_TEMP}.nii.gz ${OPE_TEMP}.nii.gz &>/dev/null
     else
@@ -812,7 +799,7 @@ if [ -z "$staged_proc" ]; then
             -q 50x25x15 \
             -z $reftemp_data_path \
             -t SyN \
-            -m CC[2] \
+            -m CC \
             -o $OUTPUT \
             ${FUNC_TEMP}.nii.gz ${OPE_TEMP}.nii.gz $reftemp_data_path &>/dev/null
     fi
@@ -871,8 +858,102 @@ if [ -z "$staged_proc" ]; then
     echo "-----> Completed combined estimation in $(($nettime0 / 3600))h:$(($nettime0 % 3600 / 60))m:$(($nettime0 % 60))s."
     echo " "
 else
-    echo "-----> Staged processing enabled, so only made the Fixed images, Fixed mask. Re-run this script without -s 1 Flag for full processing."
+    echo "-----> Staged processing enabled, so only made the template images, mask and quick undistortion. Need to re-run this script without -s "
     echo " "
+
+    # ################################################################################
+    # # RUN ANTS TEMPLATE CONSTRUCTION TO FIND MIDDLE GROUND
+    # FUNC_TEMP=$(dirname $func_data_path)/${func_data_name}_MoCorr_fixed
+    # OPE_TEMP=$(dirname $ope_data_path)/${ope_data_name}_MoCorr_meanTemplate_reg2func
+    # OUTPUT=$(dirname $func_data_path)/${func_data_name}_DistCorr_quick
+
+    # if [ -z "$reftemp_data_name" ]; then
+    #     echo "-----> Starting distortion correction."
+    #     echo " "
+    #     #    $ANTSPATH/sk_antsDistCorrScript.sh \
+    #     $ANTSPATH/antsMultivariateTemplateConstruction2.sh \
+    #     -d 3 \
+    #     -a 0 \
+    #     -c 2 \
+    #     -g 0.25 \
+    #     -j $n_threads \
+    #     -n 1 \
+    #     -l 1 \
+    #     -r 0 \
+    #     -i 3 \
+    #     -k 1 \
+    #     -f 4x2x1 \
+    #     -s 4x2x0vox \
+    #     -q 15x10x10 \
+    #     -t SyN \
+    #     -m CC[2] \
+    #     -o $OUTPUT \
+    #     ${FUNC_TEMP}.nii.gz ${OPE_TEMP}.nii.gz 2>&1 | tee $(dirname $func_data_path)/${func_data_name}_DistCorr.log
+    # else
+    #     echo "-----> Starting distortion correction. Also using reference template."
+    #     echo " "
+    #     #    $ANTSPATH/sk_antsDistCorrScript.sh \
+    #     $ANTSPATH/antsMultivariateTemplateConstruction2.sh \
+    #     -d 3 \
+    #     -a 0 \
+    #     -c 2 \
+    #     -g 0.25 \
+    #     -j $n_threads \
+    #     -n 1 \
+    #     -l 1 \
+    #     -r 0 \
+    #     -i 3 \
+    #     -k 1 \
+    #     -f 4x2x1 \
+    #     -s 4x2x0vox \
+    #     -q 15x10x10 \
+    #     -z $reftemp_data_path \
+    #     -t SyN \
+    #     -m CC[2] \
+    #     -o $OUTPUT \
+    #     ${FUNC_TEMP}.nii.gz ${OPE_TEMP}.nii.gz $reftemp_data_path 2>&1 | tee $(dirname $func_data_path)/${func_data_name}_DistCorr.log
+    # fi
+
+    # echo "-----> Created distortion corrected template."
+    # echo " "
+
+    # $ANTSPATH/ImageMath 3 \
+    # $(dirname $func_data_path)/$(basename ${OUTPUT})template0.nii.gz \
+    # UnsharpMask \
+    # $(dirname $func_data_path)/$(basename ${OUTPUT})template0.nii.gz \
+    # 0.7 2 0 0
+
+    # # Do clean up
+    # rm \
+    # $(dirname $func_data_path)/$(basename ${OUTPUT})$(basename ${OPE_TEMP})10GenericAffine.mat \
+    # $(dirname $func_data_path)/$(basename ${OUTPUT})$(basename ${OPE_TEMP})11InverseWarp.nii.gz \
+    # $(dirname $func_data_path)/$(basename ${OUTPUT})$(basename ${OPE_TEMP})11Warp.nii.gz \
+    # $(dirname $func_data_path)/$(basename ${OUTPUT})$(basename ${FUNC_TEMP})01InverseWarp.nii.gz \
+    # $(dirname $func_data_path)/$(basename ${OUTPUT})template0GenericAffine.mat \
+    # $(dirname $func_data_path)/$(basename ${OUTPUT})template0warp.nii.gz \
+    # $(dirname $func_data_path)/$(basename ${OUTPUT})templatewarplog.txt \
+    # $(dirname $func_data_path)/$(basename ${OUTPUT})template0$(basename ${OPE_TEMP})1WarpedToTemplate.nii.gz \
+    # $(dirname $func_data_path)/$(basename ${OUTPUT})template0$(basename ${FUNC_TEMP})0WarpedToTemplate.nii.gz
+
+    # mv \
+    # $(dirname $func_data_path)/$(basename ${OUTPUT})$(basename ${FUNC_TEMP})01Warp.nii.gz \
+    # $(dirname $func_data_path)/$(basename ${OUTPUT})01Warp.nii.gz
+
+    # mv \
+    # $(dirname $func_data_path)/$(basename ${OUTPUT})$(basename ${FUNC_TEMP})00GenericAffine.mat \
+    # $(dirname $func_data_path)/$(basename ${OUTPUT})00GenericAffine.mat
+
+    # echo "-----> Temporary files cleaned up."
+    # echo " "
+
+    # tar -zcf \
+    # $(dirname $func_data_path)/${func_data_name}_MoCorr_DistCorr_transforms.tar.gz \
+    # ${data_mats}/*.mat \
+    # $(dirname $func_data_path)/$(basename ${OUTPUT})00GenericAffine.mat \
+    # $(dirname $func_data_path)/$(basename ${OUTPUT})01Warp.nii.gz
+
+    # echo "-----> Transformations saved."
+    # echo " "
 
     end_time0=$(date +%s)
     nettime0=$(expr $end_time0 - $start_time0)

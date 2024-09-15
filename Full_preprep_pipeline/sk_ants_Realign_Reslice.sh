@@ -93,11 +93,11 @@ function reportParameters() {
     ANTSPATH is $ANTSPATH
 
     TR                  : ${bold} $tr ${normal}
-    4D fMRI data        : ${bold} ${func_data_name} ${normal}
+    4D fMRI data        : ${bold} ${func_data_name}.nii.gz ${normal}
     Inter-run ITK txn   : ${bold} $inter_txn0 ${normal}
     Inter-run ITK txn   : ${bold} $inter_txn1 ${normal}
-    Reference run data  : ${bold} ${runref_data_name} ${normal}
-    Reference Anatomy   : ${bold} ${anatomy_data_name} ${normal}
+    Reference run data  : ${bold} ${runref_data_name}.nii.gz ${normal}
+    Reference Anatomy   : ${bold} ${anatomy_data_name}.nii.gz ${normal}
     Final anat ITK txn  : ${bold} $final_txn0 ${normal}
     Final anat ITK txn  : ${bold} $final_txn1 ${normal}
     Invert final txn?   : ${bold} $use_inverse ${normal}
@@ -267,7 +267,7 @@ echo " "
 if [ ! -f "$(dirname $func_data_path)/${func_data_name}_MoCorr_DistCorr.nii.gz" ]; then
 
     if [ -z "$runref_path" ]; then
-        echo "-----> No inter-session resampling being done."
+        echo "-----> No inter-run resampling being done."
         echo " "
         TEMP=$(dirname $func_data_path)/${func_data_name}_DistCorr_
 
@@ -277,7 +277,7 @@ if [ ! -f "$(dirname $func_data_path)/${func_data_name}_MoCorr_DistCorr.nii.gz" 
             echo -ne "--------------------> Processing $volume"\\r
 
             INPUT=${data_split}/${func_data_name}_${volume}.nii.gz
-            OUTPUT=${data_split}/${func_data_name}_${volume}_Warped-to-EPI.nii.gz
+            OUTPUT=${data_split}/${func_data_name}_${volume}_WarpedEPI.nii.gz
             ### Concatenate the following transforms in order
             # 3) Distortion correction (warp)
             # 2) Distortion correction (mat)
@@ -297,22 +297,22 @@ if [ ! -f "$(dirname $func_data_path)/${func_data_name}_MoCorr_DistCorr.nii.gz" 
 
         $ANTSPATH/ImageMath \
             4 \
-            $(dirname $func_data_path)/${func_data_name}_MoCorr_DistCorr_nativeEPISpaceAligned.nii.gz \
+            $(dirname $func_data_path)/${func_data_name}_MoCorr_DistCorr_nativeEPIAligned.nii.gz \
             TimeSeriesAssemble \
             $tr \
             0 \
-            ${data_split}/${func_data_name}_*_Warped-to-EPI.nii.gz
+            ${data_split}/${func_data_name}_*_WarpedEPI.nii.gz
 
         echo "-----> Re-assembled motion+distortion corrected functional data in EPI space."
         echo " "
     else
-        echo "-----> Inter-session resampling being done."
+        echo "-----> Inter-run resampling being done."
         echo " "
         TEMP=$(dirname $func_data_path)/${func_data_name}_DistCorr_
         REF=$(dirname $runref_path)/${runref_data_name}.nii.gz
 
         if [ -z "$inter_txn1" ]; then
-            echo "-----> Inter-session resampling being done using linear transform."
+            echo "-----> Inter-run resampling being done using linear transform."
             echo " "
 
             start_time=$(date +%s)
@@ -321,7 +321,7 @@ if [ ! -f "$(dirname $func_data_path)/${func_data_name}_MoCorr_DistCorr.nii.gz" 
                 echo -ne "--------------------> Processing $volume"\\r
 
                 INPUT=${data_split}/${func_data_name}_${volume}.nii.gz
-                OUTPUT=${data_split}/${func_data_name}_${volume}_Warped-to-RefEPI.nii.gz
+                OUTPUT=${data_split}/${func_data_name}_${volume}_Warped2RefEPI.nii.gz
                 # 4) Coregister to ref (mat)
                 # 3) Distortion correction (warp)
                 # 2) Distortion correction (mat)
@@ -340,7 +340,7 @@ if [ ! -f "$(dirname $func_data_path)/${func_data_name}_MoCorr_DistCorr.nii.gz" 
                     --output $OUTPUT
             done
         else
-            echo "-----> Inter-session resampling being done using deformable transform."
+            echo "-----> Inter-run resampling being done using deformable transform."
             echo " "
             start_time=$(date +%s)
             for volume in $(eval echo "{$basevol..$nthvol}"); do
@@ -348,7 +348,7 @@ if [ ! -f "$(dirname $func_data_path)/${func_data_name}_MoCorr_DistCorr.nii.gz" 
                 echo -ne "--------------------> Processing $volume"\\r
 
                 INPUT=${data_split}/${func_data_name}_${volume}.nii.gz
-                OUTPUT=${data_split}/${func_data_name}_${volume}_Warped-to-RefEPI.nii.gz
+                OUTPUT=${data_split}/${func_data_name}_${volume}_Warped2RefEPI.nii.gz
                 # 5) Coregister to ref (warp)
                 # 4) Coregister to ref (mat)
                 # 3) Distortion correction (warp)
@@ -371,11 +371,11 @@ if [ ! -f "$(dirname $func_data_path)/${func_data_name}_MoCorr_DistCorr.nii.gz" 
         fi
         $ANTSPATH/ImageMath \
             4 \
-            $(dirname $func_data_path)/${func_data_name}_MoCorr_DistCorr_nativeEPISpace_interSessionAligned.nii.gz \
+            $(dirname $func_data_path)/${func_data_name}_MoCorr_DistCorr_interSessionEPIAligned.nii.gz \
             TimeSeriesAssemble \
             $tr \
             0 \
-            ${data_split}/${func_data_name}_*_Warped-to-RefEPI.nii.gz
+            ${data_split}/${func_data_name}_*_Warped2RefEPI.nii.gz
 
         echo "-----> Re-assembled motion+distortion corrected functional data in EPI space."
         echo " "
@@ -389,14 +389,14 @@ else
     if [ -z "$use_inverse" ]; then
         echo "-----> Final ITK transformation found, using as is."
         echo " "
-        ANAT=$anatomy_path
+        ANAT=$(dirname $anatomy_path)/${anatomy_data_name}.nii.gz
         if [ -z "$final_txn1" ]; then
             echo "-----> Final ITK transformation found, using as is, linear."
             echo " "
             for volume in $(eval echo "{$basevol..$nthvol}"); do
                 echo -ne "--------------------> Processing $volume"\\r
                 INPUT=${data_split}/${func_data_name}_${volume}.nii.gz
-                OUTPUT=${data_split}/${func_data_name}_${volume}_Warped-to-Anat.nii.gz
+                OUTPUT=${data_split}/${func_data_name}_${volume}_Warped2Anat.nii.gz
                 # 4) Coregister to anatomy (mat)
                 # 3) Distortion correction (warp)
                 # 2) Distortion correction (mat)
@@ -416,11 +416,11 @@ else
         else
             echo "-----> Final ITK transformation found, using as is and deformable."
             echo " "
-            ANAT=$anatomy_path
+            ANAT=$(dirname $anatomy_path)/${anatomy_data_name}.nii.gz
             for volume in $(eval echo "{$basevol..$nthvol}"); do
                 echo -ne "--------------------> Processing $volume"\\r
                 INPUT=${data_split}/${func_data_name}_${volume}.nii.gz
-                OUTPUT=${data_split}/${func_data_name}_${volume}_Warped-to-Anat.nii.gz
+                OUTPUT=${data_split}/${func_data_name}_${volume}_Warped2Anat.nii.gz
                 # 4) Coregister to anatomy (mat)
                 # 3) Distortion correction (warp)
                 # 2) Distortion correction (mat)
@@ -442,14 +442,14 @@ else
     else
         echo "-----> Final ITK transformation found, using inverse."
         echo " "
-        ANAT=$anatomy_path
+        ANAT=$(dirname $anatomy_path)/${anatomy_data_name}.nii.gz
         if [ -z "$final_txn1" ]; then
             echo "-----> Final ITK transformation found, using inverse, only linear."
             echo " "
             for volume in $(eval echo "{$basevol..$nthvol}"); do
                 echo -ne "--------------------> Processing $volume"\\r
                 INPUT=${data_split}/${func_data_name}_${volume}.nii.gz
-                OUTPUT=${data_split}/${func_data_name}_${volume}_Warped-to-Anat.nii.gz
+                OUTPUT=${data_split}/${func_data_name}_${volume}_Warped2Anat.nii.gz
                 # 4) Coregister to anatomy (mat) invert
                 # 3) Distortion correction (warp)
                 # 2) Distortion correction (mat)
@@ -469,11 +469,11 @@ else
         else
             echo "-----> Final ITK transformation found, using inverse, deformable."
             echo " "
-            ANAT=$anatomy_path
+            ANAT=$(dirname $anatomy_path)/${anatomy_data_name}.nii.gz
             for volume in $(eval echo "{$basevol..$nthvol}"); do
                 echo -ne "--------------------> Processing $volume"\\r
                 INPUT=${data_split}/${func_data_name}_${volume}.nii.gz
-                OUTPUT=${data_split}/${func_data_name}_${volume}_Warped-to-Anat.nii.gz
+                OUTPUT=${data_split}/${func_data_name}_${volume}_Warped2Anat.nii.gz
                 # 4) Coregister to anatomy (mat) invert
                 # 3) Distortion correction (warp)
                 # 2) Distortion correction (mat)
@@ -501,11 +501,11 @@ else
 
     $ANTSPATH/ImageMath \
         4 \
-        $(dirname $func_data_path)/${func_data_name}_MoCorr_DistCorr_anatomySpaceAligned.nii.gz \
+        $(dirname $func_data_path)/${func_data_name}_MoCorr_DistCorr_anatomyAligned.nii.gz \
         TimeSeriesAssemble \
         $tr \
         0 \
-        ${data_split}/${func_data_name}_*_Warped-to-Anat.nii.gz
+        ${data_split}/${func_data_name}_*_Warped2Anat.nii.gz
 
     echo "-----> Re-assembled motion+distortion corrected+coregistered functional data in Anatomical Space."
     echo " "
