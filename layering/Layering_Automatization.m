@@ -1,6 +1,6 @@
 %% This script calls VPF_create_hippocampus_layers and creates a structure with 30 bins in each hippocampal subregion and each time point 
 
-folders = readcell('folders_list.txt');
+folders = readcell('../folders_list.txt');
 rule = '1 2 3 4'; % 1 = sub, 2 = ca1, 3 = ca2, 4 = ca3 
 N_layers = [20 10]; % 20 bins between inner and outer surfaces and extende another 10 bins beyond the inner surface to cover SRLM
 N_run = 8;
