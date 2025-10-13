@@ -28,7 +28,7 @@ Additional instructions and processing details can be found in the Walk-through.
 
 References
 
-1. Laminar profile of hippocampal subregions during spatial navigation. K Ahmadi, D Stawarczyk, V Pfaffenrot, CA Gomez, Z Patai, DG Norris, Axmacher, N. (2024). Proc Intl Soc Mag Reson Med 32 890. https://archive.ismrm.org/2024/0890.html
+1. Ahmadi, K., Stawarczyk, D., Pfaffenrot, V., Gomez, CA., Patai, Z., Norris, DG., Axmacher, N. (2024). Laminar profile of hippocampal subregions during spatial navigation. Proc Intl Soc Mag Reson Med 32 890. https://archive.ismrm.org/2024/0890.html
 
 2. Ahmadi, K., Swegle, S., Kashyap, S., Bouyeure, A., Bandettini, P., Axmacher, N., & Huber, L. (2025). Blood volume sensitive laminar fMRI with VASO in human hippocampus: Capabilities and biophysical challenges at clinical 7T scanners. bioRxiv, 2025-08.
 
