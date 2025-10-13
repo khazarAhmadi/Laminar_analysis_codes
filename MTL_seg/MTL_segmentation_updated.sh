@@ -17,14 +17,23 @@ mkdir HUoutput
 mkdir -p HUinput_INV1/$line2/anat
 mkdir HUoutput-INV1based
 
-cp ../functional/preprocess_output_trimed/MP2RAGE-UNI_MPRAGEised.nii.gz HUinput/$line2/anat/T1w.nii.gz # copy T1 and T2-TSE images to this directory to run Hippunfold on standard mode
+cp ../functional/preprocess_output_complete/MP2RAGE-UNI_MPRAGEised.nii.gz HUinput/$line2/anat/T1w.nii.gz # copy T1 and T2-TSE images to this directory to run Hippunfold on standard mode
 cp T2/TSE_averaged_SliceRemoved.nii.gz HUinput/$line2/anat/T2w.nii.gz
 
 cp T1/presurf_INV1/MP2RAGE-INV1_biascorrected_BM4D.nii HUinput_INV1/$line2/anat/T2w.nii.gz # copy the denoised and bias-field corrected short-TI T1 image that has a T2-like contrast, rename it as T2. This is needed for later layerification
 
-singularity run -e khanlab_hippunfold_latest.sif HUinput/ HUoutput participant --modality T2w --t1-reg-template -p --cores all # Run Hippunfold using singularity in standard mode
+SIF_PATH="/home/kahmadi/khanlab_hippunfold_latest.sif"
 
-singularity run -e khanlab_hippunfold_latest.sif HUinput_INV1/ HUoutput-INV1based participant -p --cores all --modality T2w # Run Hippunfolder for layerification
+# Check if the SIF file exists before proceeding
+if [ ! -f "$SIF_PATH" ]; then
+  echo "ERROR: Cannot find SIF file at: $SIF_PATH"
+  echo "Please edit the script and update the correct path to khanlab_hippunfold_latest.sif"
+  exit 1
+fi
+
+singularity run -e "$SIF_PATH" HUinput/ HUoutput participant --modality T2w --t1-reg-template -p --cores all # Run Hippunfold using singularity in standard mode
+
+singularity run -e "$SIF_PATH" HUinput_INV1/ HUoutput-INV1based participant -p --cores all --modality T2w # Run Hippunfolder for layerification
 
 # once Hippunfold is run, navigate to HUoutput->hippunfold->sub00xx->anat load itk snap and view the cropped T2 weighted hippocampi and load the labels as a segmentation image 
  

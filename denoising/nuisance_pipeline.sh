@@ -9,7 +9,7 @@ cp -r preprocess_output_complete/*-AP-dummyRemoved-sliceRemove_MoCorr_DistCorr_a
 cp -r preprocess_output_complete/*-AP-dummyRemoved-sliceRemove_MoCorr.params LME/nuisance-removed/ # copy and also rename motion estimates 
 cd LME/nuisance-removed/
 
-for l in {1..8};do
+for l in {1..8};do # 8 is number of runs.
 mv Run$l-AP-dummyRemoved-sliceRemove_MoCorr.params Run$l-AP-dummyRemoved-sliceRemove_MoCorr.txt;done # 8 number of runs 
 mkdir FAST-masks
 cp ../../structural/FSL_fast/WM_new_cropped_bin_eroded.nii.gz FAST-masks/

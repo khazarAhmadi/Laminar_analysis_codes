@@ -3,7 +3,7 @@
 ## This snippet does the first steps of preprocessing including discarding dummy volumes (until the scanner reaches steady state) and removal of one slice from top and one from bottom. Requires AFNI and FSL packages to be installed in your machine. It calls AFNI 3dTcat for discarding the first 3 volumes and fslroi to get rid of corrupted slices. 
 
 ## Start with 1st session data
-cat ../folders_list.txt | while read line; do 
+cat folders_list.txt | while read line; do 
 cd $line/functional/AP/
 # first preparation for dummy removal
 find -maxdepth 1 -name 'Run*-AP.nii.gz' | sort > list-AP.txt
