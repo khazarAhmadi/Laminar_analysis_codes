@@ -1,6 +1,6 @@
 #!/bin/bash
 
-################################ Bash Script which takes care of preprocessing of fMRI data at 7T, based on scripts of Sriranga Kashyap. Requires ANTS, FSL, MATLAB, and presurfer to be installed in your system. Make sure that 'sk_ants_Realign_Estimate_KA.sh', 'sk_antsFineReg.sh', and 'sk_ants_Realign_Reslice.sh' are in the same directory as this script.     
+################################ Bash Script which takes care of full preprocessing of fMRI data at 7T, based on the scripts of Sriranga Kashyap. Requires ANTS, FSL, MATLAB, and presurfer to be installed in your system. Make sure that 'sk_ants_Realign_Estimate_KA.sh', 'sk_antsFineReg.sh', and 'sk_ants_Realign_Reslice.sh' are in the same directory as this script.     
 
 ## copying the data to designated folder
 cat folders_list.txt | while read line; do  
@@ -35,7 +35,7 @@ cat PA-list-Noending.txt | while read line;do antsMotionCorr -d 3 -a "$line".nii
 
 
 ## Perform distortion and motion correction on the data. n is number of threads (allocate higher number if you have more) and t is TR which is 2.5 s in our case. 8 is the number of fMRI data  
-for b in {1..8}; do
+for b in {1..8}; do # we have exactly 8 runs in this study. 
 ./sk_ants_Realign_Estimate_KA.sh -n 28 -t 2.5 -a Run$b-AP-dummyRemoved-sliceRemove.nii.gz -b Run$b-PA-dummyRemoved-sliceRemove.nii.gz; done
  
 ## MPRAGize anatomy and obtain WM mask, based on functions from 'presurfer package'.
