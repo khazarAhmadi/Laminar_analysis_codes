@@ -1,5 +1,5 @@
-% This scripts is meant to automatize the 'acompcor' function to remove
-% non-bld signal from WM and csf. Requires fmri_compcor.m afrom the following Github repository: https://github.com/dmascali/fmri_denoising. Add the whole folder to MATLAB path. The script will run in no-display mode and is called by 'nuisance_pipeline.sh' script. 
+% This snippet is meant to automatize the 'acompcor' function to remove
+% signal in WM and csf which contribbutes to physiological noise. Requires "fmri_compcor.m" afrom the following Github repository: https://github.com/dmascali/fmri_denoising. Add the whole folder to MATLAB path. The script will run in no-display mode and is called by 'nuisance_pipeline.sh' script. 
 
 %folders = readcell('../folders_list.txt');
 N_run = 8;

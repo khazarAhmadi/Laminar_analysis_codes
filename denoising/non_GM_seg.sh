@@ -1,6 +1,7 @@
 #!/bin/bash
 
-## This script segments the brain tissue into GM, CSF and WM mask with FSL FAST command, of which the latter two will be eroded and used in ICA-based 'acopmcor' for removal of non-bold signal. 
+## This script segments the brain tissue into GM, CSF and WM mask with FSL FAST command, of which the latter two will be eroded and used in ICA-based 'acopmcor' for physiological noise reduction. 
+## Requires FSL
 
 cat folders_list.txt | while read line; do 
 cd $line/structural/
@@ -16,12 +17,14 @@ fslmaths fast_T1_pveseg.nii.gz -thr 3 -uthr 3 WM_new.nii.gz
 # We need to crop the WM, csf mask based on FOV of the fMRI data that is already aligned to anatomy
 3dTstat -mean -prefix ../../functional/LME/nuisance-removed/Run1-mean.nii.gz ../../functional/LME/nuisance-removed/Run1-AP-dummyRemoved-sliceRemove_MoCorr_DistCorr_anatomyAligned.nii.gz # get the mean of 1st run
  
-fslmaths WM_new.nii.gz -mas ../../functional/LME/nuisance-removed/Run1-mean.nii.gz WM_new_cropped.nii.gz # crop the masks 
-fslmaths WM_new_cropped.nii.gz -bin WM_new_cropped_bin.nii.gz
+fslmaths WM_new.nii.gz -mas ../../functional/LME/nuisance-removed/Run1-mean.nii.gz -bin WM_new_cropped_bin.nii.gz # crop and binarize the masks 
+
 fslmaths csf_new.nii.gz -mas ../../functional/LME/nuisance-removed/Run1-mean.nii.gz csf_new_cropped.nii.gz 
 
-fslmaths WM_new_cropped_bin.nii.gz -kernel gauss 1 -ero WM_new_cropped_bin_eroded.nii.gz # erode the mask, as sometimes it penetrates inside the hippocampus mask. Check the output, if it has eroded too much, reduce the threshold. 
+fslmaths WM_new_cropped_bin.nii.gz -kernel gauss 1 -ero WM_new_cropped_bin_eroded.nii.gz 
 fslmaths csf_new_cropped.nii.gz -kernel gauss 1 -ero csf_new_cropped_eroded.nii.gz
+# erode the mask, as sometimes few voxels are mislabeled and include the hippocampus mask. 
+# Check the output visually, if the eroding has been too aggressive, reduce the threshold of gaussian kernel.  
 
 cd ../../..
 done 

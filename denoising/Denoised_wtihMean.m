@@ -1,15 +1,19 @@
-% This snippet puts back the mean of each voxel over time to denoised
-% outputs of AFNI 3dTproject
-%% Note that I did not make this script to do the calculation for all runs and subjects because it gets memory-intensive and the code crashes. Better to use it individually. 
-%folders = readcell('folders_list.txt');
-N_run = 8;
-%for m = 1:length(folders)
- %   folders_comb{m,1} = convertStringsToChars(strcat(string(folders{m,1}),'_',folders{m,2},'_',...
-   % string(folders{m,3}),'_',folders{m,4},'_',folders{m,5}));
-%end 
+%% Add voxelwise temporal mean back to AFNI 3dTproject denoised outputs
+% Purpose: Add the mean signal (over time) to denoised fMRI runs
+% Dependencies: load_nifti, save_nifti (from FreeSurfer)
+% Considering the large size of .nii files, this function is memory-intensive! To avoide system crash, it is recommended to run each subject separately from their corresponding directory.  
+
+clear; clc;
+N_runs = 8; % number of runs
+base_dir = pwd; % current directory assumed to contain data folders
+
+fprintf('=== Starting mean restoration for %d runs ===\n', N_runs);
+
+
 %for n = 1:length(folders_comb)
  %   cd(strcat(folders_comb{n,1},'functional/LME/nuisance-removed/'))
     for m = 1:N_runs
+    	printf('\n[Run %d] Processing...\n', run);
         a = load_nifti(convertStringsToChars(strcat('Run',string(m),'-AP-dummyRemoved-sliceRemove_MoCorr_DistCorr_anatomyAligned.nii.gz')));
         fourthDim = size(a.vol);
         b = reshape(a.vol,[],fourthDim(4));
