@@ -1,6 +1,9 @@
 #!/bin/bash
 
-################################ Bash Script which takes care of full preprocessing of fMRI data at 7T, based on the scripts of Sriranga Kashyap. Requires ANTS, FSL, MATLAB, and presurfer to be installed in your system. Make sure that 'sk_ants_Realign_Estimate_KA.sh', 'sk_antsFineReg.sh', and 'sk_ants_Realign_Reslice.sh' are in the same directory as this script.     
+################################ Bash Script which takes care of full preprocessing of fMRI data at 7T, based on the scripts of Sriranga Kashyap. 
+# Requires ANTS, FSL, MATLAB, and presurfer to be installed in your system. 
+# Make sure that 'sk_ants_Realign_Estimate_KA.sh', 'sk_antsFineReg.sh', and 'sk_ants_Realign_Reslice.sh' are in the same directory.     
+################################ 
 
 ## copying the data to designated folder
 cat folders_list.txt | while read line; do  
